@@ -7,3 +7,9 @@ data class GastosListState(
     val gastos: List<GastosDto> = emptyList(),
     val error: String = ""
 )
+
+data class GastoState(
+    val isLoading: Boolean = false,
+    val gastos: GastosDto? = null,
+    val error: String = "",
+)

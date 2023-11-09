@@ -80,7 +80,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
         viewModel.isMessageShownFlow.collectLatest {
             if (it) {
                 snackbarHostState.showSnackbar(
-                    message = "Saved gasto",
+                    message = "Gasto guardado",
                     duration = SnackbarDuration.Short
                 )
             }
@@ -193,7 +193,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 keyboardController?.hide()
                 if (viewModel.isValid()) {
                     viewModel.saveGasto()
-                    //viewModel.setMessageShown()
+                    viewModel.setMessageShown()
                 }
             }, modifier = Modifier.fillMaxWidth())
 

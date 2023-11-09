@@ -127,8 +127,7 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-
-    fun editGasto(id: Int) {
+    fun updateGasto(id: Int) {
         viewModelScope.launch {
             if (isValid()) {
                 val gastoEditado = GastosDto(
