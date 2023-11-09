@@ -164,7 +164,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
             )
 
             OutlinedTextField(
-                label = { Text(text = "Date Birth")},
+                label = { Text(text = "Fecha")},
                 value = date,
                 onValueChange = {},
                 enabled = false,
