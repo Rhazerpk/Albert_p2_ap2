@@ -4,8 +4,10 @@ import android.app.DatePickerDialog
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
@@ -16,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material3.Card
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -95,6 +98,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 .padding(8.dp)
         ) {
             val keyboardController = LocalSoftwareKeyboardController.current
+            Text(text = "Gastos detalles", style = MaterialTheme.typography.titleMedium)
 
             CustomOutlinedTextField(
                 value = viewModel.suplidor,
@@ -118,6 +122,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 imeAction = ImeAction.Next
             )
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = viewModel.descuento.toString(),
                 label = { Text(text = "Descuento") },
                 singleLine = true,
@@ -133,6 +138,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 )
             )
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = viewModel.itbis.toString(),
                 label = { Text(text = "Itbis") },
                 singleLine = true,
@@ -148,6 +154,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 )
             )
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 value = viewModel.monto.toString(),
                 label = { Text(text = "Monto") },
                 singleLine = true,
@@ -164,6 +171,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
             )
 
             OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Fecha")},
                 value = date,
                 onValueChange = {},
@@ -235,8 +243,11 @@ fun GastosItem(gastos: GastosDto) {
             Text(text = "NCF: " + gastos.ncf, style = MaterialTheme.typography.titleMedium)
             Text(text = "Itbis: " + gastos.itbis, style = MaterialTheme.typography.titleMedium)
             Text(text = "Monto: " + gastos.monto, style = MaterialTheme.typography.titleMedium)
+
+            Divider(modifier = Modifier.fillMaxWidth(), color = Color.Gray, thickness = 1.dp)
         }
     }
+    Spacer(modifier = Modifier.height(16.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
