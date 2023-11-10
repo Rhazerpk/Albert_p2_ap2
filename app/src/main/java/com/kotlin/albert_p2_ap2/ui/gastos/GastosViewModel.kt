@@ -19,21 +19,21 @@ import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import java.util.Date
 import javax.inject.Inject
 
 @HiltViewModel
 class GastosViewModel @Inject constructor(
     private val gastosRepository: GastosRepository
-): ViewModel(){
+) : ViewModel() {
 
-    var fecha by mutableStateOf(Date())
+    var fecha by mutableStateOf("")
     var suplidor by mutableStateOf("")
     var ncf by mutableStateOf("")
     var concepto by mutableStateOf("")
     var descuento by mutableStateOf(0)
     var itbis by mutableStateOf(0)
     var monto by mutableStateOf(0)
+    var idSuplidor by mutableStateOf(0)
 
     var isValidNcf by mutableStateOf(true)
     var isValidSuplidor by mutableStateOf(true)
@@ -64,7 +64,7 @@ class GastosViewModel @Inject constructor(
         }
     }
 
-    init {
+    fun upload() {
         gastosRepository.getGastos().onEach { result ->
             when (result) {
                 is Resource.Loading -> {
@@ -82,19 +82,26 @@ class GastosViewModel @Inject constructor(
         }.launchIn(viewModelScope)
     }
 
+    init {
+        upload()
+    }
+
     fun saveGasto() {
         viewModelScope.launch {
             if (isValid()) {
                 val gastosDto = GastosDto(
-                    fecha = fecha,
+                    idGasto = 0,
+                    idSuplidor = idSuplidor,
                     suplidor = suplidor,
                     ncf = ncf,
                     concepto = concepto,
                     descuento = descuento,
                     itbis = itbis,
                     monto = monto,
+                    fecha = fecha,
                 )
                 gastosRepository.postGastos(gastosDto)
+                upload()
                 limpiar()
             }
         }
@@ -117,6 +124,7 @@ class GastosViewModel @Inject constructor(
                         descuento = descuento
                         itbis = itbis
                         monto = monto
+                        idSuplidor = idSuplidor
                     }
 
                     is Resource.Error -> {
@@ -137,12 +145,14 @@ class GastosViewModel @Inject constructor(
                     concepto = concepto,
                     descuento = descuento,
                     itbis = itbis,
-                    monto = monto
+                    monto = monto,
+                    idSuplidor = idSuplidor
                 )
                 try {
                     gastosRepository.putGastos(id, gastoEditado)
+                    upload()
                 } catch (e: Exception) {
-                   e.message
+                    e.message
                 }
             }
         }
@@ -152,20 +162,22 @@ class GastosViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 gastosRepository.deleteGastos(id)
-            } catch (e: Exception){
+                upload()
+            } catch (e: Exception) {
                 e.message
             }
         }
     }
 
     fun limpiar() {
-        fecha = Date()
+        fecha = ""
         suplidor = ""
         ncf = ""
         concepto = ""
         descuento = 0
         itbis = 0
         monto = 0
+        idSuplidor = 0
     }
 
 }

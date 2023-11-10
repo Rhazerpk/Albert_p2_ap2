@@ -2,7 +2,6 @@ package com.kotlin.albert_p2_ap2.di
 
 import com.kotlin.albert_p2_ap2.data.remote.GastosApi
 import com.kotlin.albert_p2_ap2.data.repository.GastosRepository
-import com.kotlin.albert_p2_ap2.util.DateAdapter
 import com.squareup.moshi.Moshi
 import com.squareup.moshi.kotlin.reflect.KotlinJsonAdapterFactory
 import dagger.Module
@@ -27,14 +26,10 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideGastosApi(moshi: Moshi): GastosApi {
-        val moshiWithDateAdapter = moshi.newBuilder()
-            .add(DateAdapter())
-            .build()
-
+    fun provideGastoApi(moshi: Moshi): GastosApi {
         return Retrofit.Builder()
-            .baseUrl("https://sag-api.azurewebsites.net")
-            .addConverterFactory(MoshiConverterFactory.create(moshiWithDateAdapter))
+            .baseUrl("https://sag-api.azurewebsites.net/")
+            .addConverterFactory(MoshiConverterFactory.create(moshi))
             .build()
             .create(GastosApi::class.java)
     }

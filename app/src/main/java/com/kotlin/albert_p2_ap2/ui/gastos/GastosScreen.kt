@@ -70,6 +70,7 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
 
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val snackbarHostState = remember { SnackbarHostState() }
+    val keyboardController = LocalSoftwareKeyboardController.current
 
     val context = LocalContext.current
     val c = Calendar.getInstance()
@@ -79,14 +80,15 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
     var invalidDate by remember { mutableStateOf(true) }
 
     var date by remember { mutableStateOf("") }
-    @Suppress("DEPRECATION") val datePickerDialog = DatePickerDialog(
+    val datePickerDialog = DatePickerDialog(
         context, { _, year1, month1, day1 ->
             val month2: Int = month1 + 1
             date = "$day1 - $month2 - $year1"
-            viewModel.fecha = Date(year1, month2, day1)
+            viewModel.fecha = date // Asignar directamente la cadena de fecha
             invalidDate = dateInvalid(viewModel.fecha)
         }, year, month, day
     )
+
 
     LaunchedEffect(Unit) {
         viewModel.isMessageShownFlow.collectLatest {
@@ -109,9 +111,31 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 .padding(it)
                 .padding(8.dp)
         ) {
-            val keyboardController = LocalSoftwareKeyboardController.current
-            Text(text = "Gastos detalles", style = MaterialTheme.typography.titleMedium)
 
+            Text(
+                text = "Registro de gastos",
+                style = MaterialTheme.typography.titleLarge,
+                modifier = Modifier
+                    .padding(8.dp)
+                    .align(Alignment.CenterHorizontally),
+                fontWeight = FontWeight.Bold
+            )
+            OutlinedTextField(
+                modifier = Modifier.fillMaxWidth(),
+                value = viewModel.idSuplidor.toString(),
+                label = { Text(text = "IdSuplidor") },
+                singleLine = true,
+                onValueChange = {
+                    val newValue = it.toIntOrNull()
+                    if (newValue != null) {
+                        viewModel.idSuplidor = newValue
+                    }
+                },
+                keyboardOptions = KeyboardOptions.Default.copy(
+                    imeAction = ImeAction.Next,
+                    keyboardType = KeyboardType.Number
+                )
+            )
             CustomOutlinedTextField(
                 value = viewModel.suplidor,
                 onValueChange = { viewModel.suplidor = it },
@@ -185,8 +209,8 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
             OutlinedTextField(
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text(text = "Fecha")},
-                value = date,
-                onValueChange = {},
+                value = viewModel.fecha,
+                onValueChange = { viewModel.fecha = it },
                 enabled = false,
                 trailingIcon = {
                     Icon(
@@ -211,20 +235,22 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
                 )
             )
 
-            OutlinedButton(onClick = {
-                keyboardController?.hide()
-                if (viewModel.isValid()) {
-                    viewModel.saveGasto()
-                    viewModel.setMessageShown()
-                }
-            }, modifier = Modifier.fillMaxWidth())
-
-            {
+            OutlinedButton(
+                onClick = {
+                    keyboardController?.hide()
+                    if (viewModel.isValid()) {
+                        viewModel.saveGasto()
+                        viewModel.setMessageShown()
+                    }
+                },
+                modifier = Modifier.fillMaxWidth()
+            ) {
                 Text(text = "Guardar")
                 Icon(imageVector = Icons.Default.Save, contentDescription = "Save")
             }
 
-            Consult(uiState.gastos)
+
+            uiState.gastos?.let { gasto -> Consult(gasto) }
         }
     }
 }
@@ -245,11 +271,11 @@ fun Consult(gastos: List<GastosDto>) {
 }
 
 @Composable
-fun GastosItem(gastos: GastosDto) {
+fun GastosItem(gastos: GastosDto, viewModel: GastosViewModel = hiltViewModel()) {
 
     val itbisFormatted = NumberFormat.getNumberInstance(Locale("es", "DO")).format(gastos.itbis)
     val montoFormatted = NumberFormat.getNumberInstance(Locale("es", "DO")).format(gastos.monto)
-    val fechaFormatted = SimpleDateFormat("dd/MM/yyyy", Locale("es", "DO")).format(gastos.fecha)
+    val fechaFormatted: String = SimpleDateFormat("dd/MM/yyyy", Locale("es", "DO")).format(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()).parse(gastos.fecha))
 
     OutlinedCard(modifier = Modifier.padding(6.dp)) {
         Column(modifier = Modifier.padding(10.dp)) {
@@ -298,8 +324,8 @@ fun GastosItem(gastos: GastosDto) {
             Divider()
             Row(
                 modifier = Modifier
-                .padding(4.dp)
-                .fillMaxWidth(),
+                    .padding(4.dp)
+                    .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
                 ElevatedButton(onClick = { }) {
@@ -316,7 +342,7 @@ fun GastosItem(gastos: GastosDto) {
                     }
                 }
                 Spacer(modifier = Modifier.padding(end = 20.dp))
-                OutlinedButton(onClick = { }) {
+                OutlinedButton(onClick = {  gastos.idGasto?.let { viewModel.deleteGastos(it) } }) {
                     Row {
                         Icon(
                             imageVector = Icons.Default.Delete,
@@ -357,11 +383,13 @@ fun CustomOutlinedTextField(
     )
 }
 
-@Suppress("DEPRECATION")
-private fun dateInvalid(date: Date): Boolean {
-    val c = Calendar.getInstance()
-    val year = c.get(Calendar.YEAR) - 17
-    val month = c.get(Calendar.MONTH)
-    val day = c.get(Calendar.DAY_OF_MONTH)
-    return date > Date(year, month, day) || date < Date(1930,1,1)
+private fun dateInvalid(date: String): Boolean {
+    val currentDate = SimpleDateFormat("dd - MM - yyyy", Locale.getDefault()).format(Date())
+    val eighteenYearsAgo = SimpleDateFormat("dd - MM - yyyy", Locale.getDefault()).format(
+        Calendar.getInstance().apply {
+            add(Calendar.YEAR, -17)
+        }.time
+    )
+
+    return date > currentDate || date < "01 - 01 - 1930" || date > eighteenYearsAgo
 }
