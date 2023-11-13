@@ -11,18 +11,16 @@ import retrofit2.http.PUT
 
 interface GastosApi {
 
-    @GET("api/Gastos")
+    @GET("/api/gastos")
     suspend fun getGastos(): List<GastosDto>
 
-    @POST("api/Gastos")
-    suspend fun postGastos(@Body gastosDto: GastosDto): Response<GastosDto>
+    @GET("/api/gastos/{id}")
+    suspend fun getGastosId(@Path("id") id: Int): GastosDto
 
-    @GET("api/Gastos/{id}")
-    suspend fun getGastosById(@Path("id") id: Int): GastosDto
-
-    @PUT("api/Gastos/{id}")
-    suspend fun putGastos(@Path("id") id: Int, @Body gastos: GastosDto): Response<GastosDto>
-
-    @DELETE("api/Gastos/{id}")
-    suspend fun deleteGastos(@Path("id") gastoId: Int): Response<GastosDto>
+    @POST("/api/gastos")
+    suspend fun postGastos(@Body gastos: GastosDto): Response<GastosDto>
+    @DELETE("/api/gastos/{id}")
+    suspend fun deleteGastos(@Path("id") id: Int): Response<Unit>
+    @PUT("/api/gastos/{id}")
+    suspend fun putGastos(@Path("id") id: Int, @Body gastos: GastosDto): Response<Unit>
 }

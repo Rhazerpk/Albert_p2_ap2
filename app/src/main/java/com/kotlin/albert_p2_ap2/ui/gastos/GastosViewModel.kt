@@ -1,5 +1,6 @@
 package com.kotlin.albert_p2_ap2.ui.gastos
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -78,6 +79,8 @@ class GastosViewModel @Inject constructor(
                 is Resource.Error -> {
                     _uiState.update { it.copy(error = result.message ?: "Error desconocido") }
                 }
+
+                else -> {}
             }
         }.launchIn(viewModelScope)
     }
@@ -88,28 +91,31 @@ class GastosViewModel @Inject constructor(
 
     fun saveGasto() {
         viewModelScope.launch {
-            if (isValid()) {
-                val gastosDto = GastosDto(
+
+
+                val gastos = GastosDto(
                     idGasto = 0,
-                    idSuplidor = idSuplidor,
-                    suplidor = suplidor,
+                    fecha=fecha,
+                    idSuplidor= idSuplidor,
+                    suplidor="",
+                    concepto=concepto,
                     ncf = ncf,
-                    concepto = concepto,
-                    descuento = descuento,
                     itbis = itbis,
-                    monto = monto,
-                    fecha = fecha,
+                    monto = monto
                 )
-                gastosRepository.postGastos(gastosDto)
-                upload()
+                Log.d("pueba","entra")
+                gastosRepository.postGastos(gastos)
+                Log.d("pueba","sale")
                 limpiar()
-            }
+               upload()
+
         }
+
     }
 
     fun getGastoById(id: Int) {
         viewModelScope.launch {
-            gastosRepository.getGastosById(id).onEach { result ->
+            gastosRepository.getGastosId(id).onEach { result ->
                 when (result) {
                     is Resource.Loading -> {
                         _uiState.update { it.copy(isLoading = true) }
@@ -130,43 +136,41 @@ class GastosViewModel @Inject constructor(
                     is Resource.Error -> {
                         _uiState.update { it.copy(error = result.message ?: "Error desconocido") }
                     }
+
+                    else -> {}
                 }
             }.launchIn(viewModelScope)
         }
     }
 
     fun updateGasto(id: Int) {
-        viewModelScope.launch {
-            if (isValid()) {
+        if (isValid()) {
+            viewModelScope.launch {
+
                 val gastoEditado = GastosDto(
+                    idGasto=1,
                     fecha = fecha,
                     suplidor = suplidor,
                     ncf = ncf,
                     concepto = concepto,
-                    descuento = descuento,
                     itbis = itbis,
                     monto = monto,
                     idSuplidor = idSuplidor
                 )
-                try {
-                    gastosRepository.putGastos(id, gastoEditado)
-                    upload()
-                } catch (e: Exception) {
-                    e.message
-                }
+                gastosRepository.putGastos(id, gastoEditado)
+
             }
+            upload()
         }
     }
 
     fun deleteGastos(id: Int) {
         viewModelScope.launch {
-            try {
-                gastosRepository.deleteGastos(id)
-                upload()
-            } catch (e: Exception) {
-                e.message
-            }
+            gastosRepository.deleteGastos(id)
+            Log.d("MiTag", "entro aqui")
+
         }
+        upload()
     }
 
     fun limpiar() {

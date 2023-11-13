@@ -59,6 +59,8 @@ import com.kotlin.albert_p2_ap2.ui.theme.Green70
 import kotlinx.coroutines.flow.collectLatest
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
+import java.time.LocalDateTime
+import java.time.format.DateTimeFormatter
 import java.util.Calendar
 import java.util.Date
 import java.util.Locale
@@ -81,12 +83,15 @@ fun Register(viewModel: GastosViewModel = hiltViewModel()) {
 
     var date by remember { mutableStateOf("") }
     val datePickerDialog = DatePickerDialog(
-        context, { _, year1, month1, day1 ->
-            val month2: Int = month1 + 1
-            date = "$day1 - $month2 - $year1"
-            viewModel.fecha = date // Asignar directamente la cadena de fecha
-            invalidDate = dateInvalid(viewModel.fecha)
-        }, year, month, day
+        context,
+        { _, year, month, dayOfMonth ->
+            val formattedDate = android.icu.text.SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                .format(Date(year - 1900, month, dayOfMonth))
+            viewModel.fecha = formattedDate
+        },
+        year,
+        month,
+        day
     )
 
 
@@ -273,10 +278,8 @@ fun Consult(gastos: List<GastosDto>) {
 @Composable
 fun GastosItem(gastos: GastosDto, viewModel: GastosViewModel = hiltViewModel()) {
 
-    val itbisFormatted = NumberFormat.getNumberInstance(Locale("es", "DO")).format(gastos.itbis)
-    val montoFormatted = NumberFormat.getNumberInstance(Locale("es", "DO")).format(gastos.monto)
-    val fechaFormatted: String = SimpleDateFormat("dd/MM/yyyy", Locale("es", "DO")).format(SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS", Locale.getDefault()).parse(gastos.fecha))
-
+    val fechaParseada = LocalDateTime.parse(gastos.fecha, DateTimeFormatter.ISO_DATE_TIME)
+    val fechaFormateada = fechaParseada.format(DateTimeFormatter.ISO_DATE)
     OutlinedCard(modifier = Modifier.padding(6.dp)) {
         Column(modifier = Modifier.padding(10.dp)) {
             Row(modifier = Modifier.fillMaxWidth()) {
@@ -284,36 +287,40 @@ fun GastosItem(gastos: GastosDto, viewModel: GastosViewModel = hiltViewModel()) 
                     Text(text = "ID: ${gastos.idGasto}")
                 }
                 Column(modifier=Modifier.weight(1f), horizontalAlignment = Alignment.End) {
-                    Text(text = fechaFormatted)
+                    Text(text = fechaFormateada)
                 }
             }
             Row (modifier = Modifier.fillMaxWidth())
             {
+                gastos.suplidor?.let {
+                    Text(
+                        text = it,
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            gastos.concepto?.let {
                 Text(
-                    text = gastos.suplidor,
-                    style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold
+                    text = it,
+                    maxLines=2,
+                    overflow = TextOverflow.Ellipsis,
+                    fontWeight = FontWeight.SemiBold,
+                    style = MaterialTheme.typography.bodyMedium
                 )
             }
-            Text(
-                text = gastos.concepto,
-                maxLines=2,
-                overflow = TextOverflow.Ellipsis,
-                fontWeight = FontWeight.SemiBold,
-                style = MaterialTheme.typography.bodyMedium
-            )
             Spacer(modifier = Modifier.padding(top = 4.dp))
             Row (modifier = Modifier.fillMaxWidth()){
                 Column(modifier=Modifier.weight(1f)) {
                     Text(text = "NCF: ${gastos.ncf}")
-                    Text(text = "ITBIS: RD$$itbisFormatted")
+                    Text(text = "ITBIS: RD$" +gastos.itbis.toString())
                 }
                 Row (
                     horizontalArrangement = Arrangement.End,
                     modifier= Modifier.weight(1f)
                 ){
                     Text(
-                        text = "RD$$montoFormatted",
+                        text = "RD$$"+ gastos.monto.toString(),
                         style = MaterialTheme.typography.titleLarge,
                         color = MaterialTheme.colorScheme.error,
                         fontWeight = FontWeight.Bold
@@ -328,7 +335,9 @@ fun GastosItem(gastos: GastosDto, viewModel: GastosViewModel = hiltViewModel()) 
                     .fillMaxWidth(),
                 horizontalArrangement = Arrangement.Center
             ) {
-                ElevatedButton(onClick = { }) {
+                ElevatedButton(onClick = {
+
+                }) {
                     Row {
                         Icon(
                             imageVector = Icons.Default.Edit,
@@ -342,7 +351,11 @@ fun GastosItem(gastos: GastosDto, viewModel: GastosViewModel = hiltViewModel()) 
                     }
                 }
                 Spacer(modifier = Modifier.padding(end = 20.dp))
-                OutlinedButton(onClick = {  gastos.idGasto?.let { viewModel.deleteGastos(it) } }) {
+                OutlinedButton(
+                    onClick = {
+                        gastos.idGasto?.let { viewModel.deleteGastos(it)
+
+                        } }) {
                     Row {
                         Icon(
                             imageVector = Icons.Default.Delete,

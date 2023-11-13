@@ -22,70 +22,32 @@ class GastosRepository @Inject constructor(
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "Error HTTP GENERAL"))
         } catch (e: IOException) {
-            emit(Resource.Error("Verificar tu conexión a internet"))
+            emit(Resource.Error(e.message ?: "verificar tu conexion a internet"))
         }
     }
 
-    fun getGastosById(id: Int): Flow<Resource<GastosDto>> = flow {
+    fun getGastosId(id: Int): Flow<Resource<GastosDto>> = flow {
         try {
             emit(Resource.Loading())
+            val gastos = api.getGastosId(id)
 
-            val gasto = api.getGastosById(id)
-
-            emit(Resource.Success(gasto))
+            emit(Resource.Success(gastos))
         } catch (e: HttpException) {
             emit(Resource.Error(e.message ?: "Error HTTP GENERAL"))
         } catch (e: IOException) {
-            emit(Resource.Error("Verificar tu conexión a internet"))
+            emit(Resource.Error(e.message ?: "verificar tu conexion a internet"))
         }
     }
 
-    fun postGastos(gasto: GastosDto): Flow<Resource<GastosDto?>> = flow {
-        try {
-            emit(Resource.Loading())
 
-            val response = api.postGastos(gasto)
-
-            if (response.isSuccessful) {
-                emit(Resource.Success(response.body()))
-            } else {
-                emit(Resource.Error("Error al crear un gasto"))
-            }
-        } catch (e: IOException) {
-            emit(Resource.Error("Verificar tu conexión a internet"))
-        }
+    suspend fun deleteGastos(id: Int) {
+        api.deleteGastos(id)
     }
-
-    fun deleteGastos(id: Int): Flow<Resource<Unit>> = flow {
-        try {
-            emit(Resource.Loading())
-
-            val response = api.deleteGastos(id)
-
-            if (response.isSuccessful) {
-                emit(Resource.Success(Unit))
-            } else {
-                emit(Resource.Error("Error al eliminar un gasto"))
-            }
-        } catch (e: IOException) {
-            emit(Resource.Error("Verificar tu conexión a internet"))
-        }
+    suspend fun postGastos(gastosDto: GastosDto) {
+        api.postGastos(gastosDto)
     }
-
-    fun putGastos(id: Int, gastos: GastosDto): Flow<Resource<GastosDto?>> = flow {
-        try {
-            emit(Resource.Loading())
-
-            val response = api.putGastos(id, gastos)
-
-            if (response.isSuccessful) {
-                emit(Resource.Success(response.body()))
-            } else {
-                emit(Resource.Error("Error al modificar un gasto"))
-            }
-        } catch (e: IOException) {
-            emit(Resource.Error("Verificar tu conexión a internet"))
-        }
+    suspend fun putGastos(id: Int,gastosDto: GastosDto) {
+        api.putGastos(id, gastosDto)
     }
 
 }
